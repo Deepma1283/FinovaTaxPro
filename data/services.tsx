@@ -1,4 +1,5 @@
 // lib/data/services.ts
+// data/services.ts
 
 export interface Service {
   slug: string;

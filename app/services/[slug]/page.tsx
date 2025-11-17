@@ -52,12 +52,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { findServiceBySlug } from '../../../data/services';
+import { findServiceBySlug, getAllCategories } from '../../../data/services';
 
 export default function ServiceDetailPage() {
   const params = useParams();
   const router = useRouter();
   const [service, setService] = useState<any>(null);
+  const [categorySlug, setCategorySlug] = useState<string>('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -65,6 +66,18 @@ export default function ServiceDetailPage() {
     const slug = params?.slug as string;
     const serviceData = findServiceBySlug(slug);
     setService(serviceData);
+    
+    // Find the correct category slug
+    if (serviceData) {
+      const categories = getAllCategories();
+      const foundCategory = categories.find(cat => 
+        cat.services.some(s => s.slug === serviceData.slug)
+      );
+      if (foundCategory) {
+        setCategorySlug(foundCategory.slug);
+      }
+    }
+    
     setLoading(false);
     
     // Check login status from localStorage
@@ -133,9 +146,6 @@ export default function ServiceDetailPage() {
     );
   }
 
-  // Get category slug for breadcrumb
-  const categorySlug = service.category.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '');
-
   return (
     <div className="min-h-screen bg-gray-50 pt-20">
       {/* Breadcrumb */}
@@ -145,10 +155,14 @@ export default function ServiceDetailPage() {
             <Link href="/" className="hover:text-blue-600 transition">Home</Link>
             <span className="mx-2">/</span>
             <Link href="/#services" className="hover:text-blue-600 transition">Services</Link>
-            <span className="mx-2">/</span>
-            <Link href={`/services/category/${categorySlug}`} className="hover:text-blue-600 transition">
-              {service.category}
-            </Link>
+            {categorySlug && (
+              <>
+                <span className="mx-2">/</span>
+                <Link href={`/services/category/${categorySlug}`} className="hover:text-blue-600 transition">
+                  {service.category}
+                </Link>
+              </>
+            )}
             <span className="mx-2">/</span>
             <span className="text-gray-900 font-medium">{service.title}</span>
           </div>
